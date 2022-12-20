@@ -19,12 +19,13 @@
                     <td>{{ livro.genero }}</td>
                     <td>{{ livro.autor }}</td>
                     <td>{{ livro.num_paginas }}</td>
-                    {% if session['usuario_logado'] %}
                     <td>
-                        <a href="{{ url_for('editar', id=livro.id) }}">Editar</a>
-                        <a href="{{ url_for('deletar', id=livro.id) }}">Deletar</a>
+                        <a href="{{ url_for('visualizar', id=livro.id) }}" class="btn btn-success">Visualizar</a>
+                        {% if session['usuario_logado'] %}
+                        <a href="{{ url_for('editar', id=livro.id) }}" class="btn btn-primary">Editar</a>
+                        <a href="{{ url_for('deletar', id=livro.id) }}" class="btn btn-danger">Deletar</a>
+                        {% endif %}
                     </td>
-                    {% endif %}
                 </tr>
                 {% endfor %}
             </tbody>

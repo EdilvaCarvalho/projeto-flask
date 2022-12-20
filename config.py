@@ -1,3 +1,4 @@
+
 SECRET_KEY = 'ifpb2022'
 
 SQLALCHEMY_DATABASE_URI = \
@@ -8,3 +9,5 @@ SQLALCHEMY_DATABASE_URI = \
         servidor = 'localhost',
         database = 'biblioteca-flask'
     )
+
+

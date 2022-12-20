@@ -19,11 +19,19 @@ def criar():
     genero = request.form['genero']
     autor = request.form['autor']
     num_paginas = request.form['num_paginas']
-    livro = Livros(nome=nome, genero=genero, autor=autor, num_paginas=num_paginas)
 
-    db.session.add(livro)
+    livro = Livros.query.filter_by(nome=nome).first()
+
+    if livro:
+        flash('Livro já existente!')
+        return redirect(url_for('index'))
+
+    novo_livro = Livros(nome=nome, genero=genero, autor=autor, num_paginas=num_paginas)
+
+    db.session.add(novo_livro)
     db.session.commit()
 
+    flash('Livro criado com sucesso!')
     return redirect(url_for('index'))
 
 @app.route('/editar/<int:id>')
@@ -31,6 +39,7 @@ def editar(id):
     if 'usuario_logado' not in session or session['usuario_logado'] == None:
         return redirect(url_for('login', proxima=url_for('editar')))
     livro = Livros.query.filter_by(id=id).first()
+    print(livro)
     return render_template('editar.html', titulo='Editar Livro', livro=livro)
 
 @app.route('/atualizar', methods=['POST',])
@@ -40,10 +49,11 @@ def atualizar():
     livro.genero = request.form['genero']
     livro.autor = request.form['autor']
     livro.num_paginas = request.form['num_paginas']
-    print(livro)
+
     db.session.add(livro)
     db.session.commit()
 
+    flash('Livro atualizado com sucesso!')
     return redirect(url_for('index'))
 
 @app.route('/deletar/<int:id>')
@@ -56,6 +66,11 @@ def deletar(id):
     flash('Livro deletado com sucesso!')
 
     return redirect(url_for('index'))
+
+@app.route('/visualizar/<int:id>')
+def visualizar(id):
+    livro = Livros.query.filter_by(id=id).first()
+    return render_template('livro.html', livro=livro)
 
 @app.route('/login')
 def login():
@@ -71,6 +86,9 @@ def autenticar():
             flash(usuario.username + ' logado com sucesso!')
             proxima_pagina = request.form['proxima']
             return redirect(proxima_pagina)
+        else:
+            flash('Usuário não logado com sucesso!')
+            return redirect(url_for('login'))
     else:
         flash('Usuário não logado com sucesso!')
         return redirect(url_for('login'))
