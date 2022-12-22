@@ -5,6 +5,9 @@
         <hr>
     </div>
     <div class="row">
+        <div class="col-sm-4">
+            <img src="{{ url_for('imagem', nome_arquivo=capa) }}" class="card-img-top" alt="...">
+        </div>
         <div class="col-sm-8">
             <p class="h4"><strong>Gênero: </strong>{{ livro.genero }}</p>
             <p class="h4"><strong>Autor: </strong>{{ livro.autor }}</p>

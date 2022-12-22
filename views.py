@@ -1,6 +1,8 @@
-from flask import render_template, request, redirect, session, flash, url_for
+from flask import render_template, request, redirect, session, flash, url_for, send_from_directory
 from biblioteca import app, db
 from models import Livros, Usuarios
+import os
+import time
 
 @app.route('/')
 def index():
@@ -31,6 +33,11 @@ def criar():
     db.session.add(novo_livro)
     db.session.commit()
 
+    capa = request.files['capa']
+    upload_path = app.config['UPLOAD_PATH']
+    timestamp = time.time()
+    capa.save(f'{upload_path}/capa{novo_livro.id}-{timestamp}.jpg')
+
     flash('Livro criado com sucesso!')
     return redirect(url_for('index'))
 
@@ -53,6 +60,12 @@ def atualizar():
     db.session.add(livro)
     db.session.commit()
 
+    capa = request.files['capa']
+    upload_path = app.config['UPLOAD_PATH']
+    timestamp = time.time()
+    deleta_arquivo(livro.id)
+    capa.save(f'{upload_path}/capa{livro.id}-{timestamp}.jpg')
+
     flash('Livro atualizado com sucesso!')
     return redirect(url_for('index'))
 
@@ -70,7 +83,8 @@ def deletar(id):
 @app.route('/visualizar/<int:id>')
 def visualizar(id):
     livro = Livros.query.filter_by(id=id).first()
-    return render_template('livro.html', livro=livro)
+    capa_livro = recupera_imagem(id)
+    return render_template('livro.html', livro=livro, capa=capa_livro)
 
 @app.route('/login')
 def login():
@@ -98,3 +112,20 @@ def logout():
     session['usuario_logado'] = None
     flash('Logout efetuado com sucesso!')
     return redirect(url_for('index'))
+
+@app.route('/uploads/<nome_arquivo>')
+def imagem(nome_arquivo):
+    return send_from_directory('uploads', nome_arquivo)
+
+def recupera_imagem(id):
+    for nome_arquivo in os.listdir(app.config['UPLOAD_PATH']):
+        if f'capa{id}' in nome_arquivo:
+            return nome_arquivo
+
+    return 'livro.png'
+
+def deleta_arquivo(id):
+    arquivo = recupera_imagem(id)
+    print(arquivo)
+    if arquivo != 'livro.png':
+        os.remove(os.path.join(app.config['UPLOAD_PATH'], arquivo))

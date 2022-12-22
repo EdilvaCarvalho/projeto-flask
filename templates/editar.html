@@ -1,6 +1,6 @@
 {% extends "template.html" %}
 {% block conteudo %}
-      <form action="{{ url_for('atualizar') }}" method="post">
+      <form action="{{ url_for('atualizar') }}" method="post" enctype="multipart/form-data">
         <fieldset>
           <input type="hidden" name="id" value="{{ livro.id }}">
           <div class="form-group">
@@ -18,6 +18,10 @@
           <div class="form-group">
             <label for="num_paginas">Número de páginas</label>
             <input type="text" id="num_paginas" name="num_paginas" value="{{ livro.num_paginas }}" class="form-control">
+          </div>
+          <div class="form-group">
+            <label for="capa">Capa</label>
+            <input type="file" id="capa" name="capa" accept=".jpg" class="form-control">
           </div>
           <button type="submit" class="btn btn-primary btn-salvar">Salvar</button>
         </fieldset>
