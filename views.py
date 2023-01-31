@@ -3,6 +3,7 @@ from biblioteca import app, db
 from models import Livros, Usuarios
 import os
 import time
+from helpers import FormularioLivro, FormularioUsuario
 
 @app.route('/')
 def index():
@@ -13,14 +14,21 @@ def index():
 def cadastro():
     if 'usuario_logado' not in session or session['usuario_logado'] == None:
         return redirect(url_for('login', proxima=url_for('cadastro')))
-    return render_template('cadastro.html', titulo='Novo Livro')
+    form = FormularioLivro()
+    return render_template('cadastro.html', titulo='Novo Livro', form=form)
 
 @app.route('/criar', methods=['POST',])
 def criar():
-    nome = request.form['nome']
-    genero = request.form['genero']
-    autor = request.form['autor']
-    num_paginas = request.form['num_paginas']
+    form = FormularioLivro(request.form)
+
+    if not form.validate_on_submit():
+        flash('Formulário inválido!')
+        return redirect(url_for('cadastro'))
+
+    nome = form.nome.data
+    genero = form.genero.data
+    autor = form.autor.data
+    num_paginas = form.num_paginas.data
 
     livro = Livros.query.filter_by(nome=nome).first()
 
@@ -46,27 +54,38 @@ def editar(id):
     if 'usuario_logado' not in session or session['usuario_logado'] == None:
         return redirect(url_for('login', proxima=url_for('editar')))
     livro = Livros.query.filter_by(id=id).first()
-    print(livro)
-    return render_template('editar.html', titulo='Editar Livro', livro=livro)
+    form = FormularioLivro()
+    form.nome.data = livro.nome
+    form.genero.data = livro.genero
+    form.autor.data = livro.autor
+    form.num_paginas.data = livro.num_paginas
+
+    return render_template('editar.html', titulo='Editar Livro', id=id, form=form)
 
 @app.route('/atualizar', methods=['POST',])
 def atualizar():
-    livro = Livros.query.filter_by(id=request.form['id']).first()
-    livro.nome = request.form['nome']
-    livro.genero = request.form['genero']
-    livro.autor = request.form['autor']
-    livro.num_paginas = request.form['num_paginas']
+    form = FormularioLivro(request.form)
 
-    db.session.add(livro)
-    db.session.commit()
+    if form.validate_on_submit():
+        livro = Livros.query.filter_by(id=request.form['id']).first()
+        livro.nome = form.nome.data
+        livro.genero = form.genero.data
+        livro.autor = form.autor.data
+        livro.num_paginas = form.num_paginas.data
 
-    capa = request.files['capa']
-    upload_path = app.config['UPLOAD_PATH']
-    timestamp = time.time()
-    deleta_arquivo(livro.id)
-    capa.save(f'{upload_path}/capa{livro.id}-{timestamp}.jpg')
+        db.session.add(livro)
+        db.session.commit()
 
-    flash('Livro atualizado com sucesso!')
+        capa = request.files['capa']
+        upload_path = app.config['UPLOAD_PATH']
+        timestamp = time.time()
+        deleta_arquivo(livro.id)
+        capa.save(f'{upload_path}/capa{livro.id}-{timestamp}.jpg')
+
+        flash('Livro atualizado com sucesso!')
+    else:
+        flash('Erro ao atualizar!')
+
     return redirect(url_for('index'))
 
 @app.route('/deletar/<int:id>')
@@ -89,13 +108,16 @@ def visualizar(id):
 @app.route('/login')
 def login():
     proxima = request.args.get('proxima')
-    return render_template('login.html', proxima=proxima, titulo='Login')
+    form = FormularioUsuario()
+    return render_template('login.html', proxima=proxima, titulo='Login', form=form)
 
 @app.route('/autenticar', methods=['POST',])
 def autenticar():
-    usuario = Usuarios.query.filter_by(username=request.form['usuario']).first()
+    form = FormularioUsuario(request.form)
+
+    usuario = Usuarios.query.filter_by(username=form.username.data).first()
     if usuario:
-        if request.form['senha'] == usuario.senha:
+        if form.senha.data == usuario.senha:
             session['usuario_logado'] = usuario.username
             flash(usuario.username + ' logado com sucesso!')
             proxima_pagina = request.form['proxima']
@@ -126,6 +148,5 @@ def recupera_imagem(id):
 
 def deleta_arquivo(id):
     arquivo = recupera_imagem(id)
-    print(arquivo)
     if arquivo != 'livro.png':
         os.remove(os.path.join(app.config['UPLOAD_PATH'], arquivo))

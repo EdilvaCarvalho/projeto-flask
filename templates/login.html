@@ -2,14 +2,15 @@
 {% block conteudo %}
     <form method="POST" action="{{ url_for('autenticar') }}">
         <input type="hidden" name="proxima" value="{{ proxima or url_for('index') }}">
+        {{ form.csrf_token() }}
         <div class="mb-3">
-            <label>Nome de usuário:</label>
-            <input class="form-control" type="text" name="usuario" required>
+            {{ form.username.label(class="form-label") }}
+            {{ form.username(class="form-control") }}
         </div>
         <div class="mb-3">
-            <label>Senha:</label>
-            <input class="form-control" type="password" name="senha" required>
+            {{ form.senha.label(class="form-label") }}
+            {{ form.senha(class="form-control") }}
         </div>
-        <button class="btn btn-primary" type="submit">Entrar</button>
+        {{ form.login(class="btn btn-primary") }}
     </form>
 {% endblock %}
