@@ -4,6 +4,7 @@ from models import Livros, Usuarios
 import os
 import time
 from helpers import FormularioLivro, FormularioUsuario
+from flask_bcrypt import check_password_hash
 
 @app.route('/')
 def index():
@@ -112,21 +113,19 @@ def login():
     return render_template('login.html', proxima=proxima, titulo='Login', form=form)
 
 @app.route('/autenticar', methods=['POST',])
+@app.route('/autenticar', methods=['POST',])
 def autenticar():
     form = FormularioUsuario(request.form)
 
     usuario = Usuarios.query.filter_by(username=form.username.data).first()
-    if usuario:
-        if form.senha.data == usuario.senha:
-            session['usuario_logado'] = usuario.username
-            flash(usuario.username + ' logado com sucesso!')
-            proxima_pagina = request.form['proxima']
-            return redirect(proxima_pagina)
-        else:
-            flash('Usuário não logado com sucesso!')
-            return redirect(url_for('login'))
+    senha = check_password_hash(usuario.senha, form.senha.data)
+    if usuario and senha:
+        session['usuario_logado'] = usuario.username
+        flash(usuario.username + ' logado com sucesso!')
+        proxima_pagina = request.form['proxima']
+        return redirect(proxima_pagina)
     else:
-        flash('Usuário não logado com sucesso!')
+        flash('Usuário não logado!')
         return redirect(url_for('login'))
 
 @app.route('/logout')

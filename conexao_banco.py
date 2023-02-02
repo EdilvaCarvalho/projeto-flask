@@ -1,4 +1,5 @@
 import psycopg2
+from flask_bcrypt import generate_password_hash
 
 conn = psycopg2.connect(
         host="localhost",
@@ -21,7 +22,7 @@ cur.execute('DROP TABLE IF EXISTS Usuarios;')
 cur.execute('CREATE TABLE Usuarios (id serial PRIMARY KEY,'
                                  'nome varchar (150) NOT NULL,'
                                  'username varchar (30) NOT NULL,'
-                                 'senha varchar (30) NOT NULL);'
+                                 'senha varchar (60) NOT NULL);'
                                  )
 
 # Insert data into the table
@@ -47,7 +48,7 @@ cur.execute('INSERT INTO Usuarios (nome, username, senha)'
             'VALUES (%s, %s, %s)',
             ('Edilva Carvalho',
              'Edilva',
-             '12345')
+             generate_password_hash('12345').decode('utf-8'))
             )
 
 conn.commit()
